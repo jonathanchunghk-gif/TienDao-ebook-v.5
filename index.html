@@ -1,0 +1,724 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>天道書樓｜電子書目</title>
+<style>
+:root {
+  --bg:#f7f5ef; --paper:#fffdf8; --ink:#243d36;
+  --muted:#69736b; --line:#dedfd5; --gold:#b5894e;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC",
+    "Microsoft JhengHei",sans-serif; line-height:1.7;
+}
+button,input,select { font:inherit; }
+button,.button {
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:10px 16px; border:1px solid var(--line); border-radius:8px;
+  background:var(--paper); color:var(--ink);
+  cursor:pointer; text-decoration:none;
+}
+button:hover,.button:hover { background:#eeeee4; }
+button:disabled { opacity:.45; cursor:default; }
+button.primary,.button.primary {
+  background:var(--ink); color:white; border-color:var(--ink);
+}
+button.active { background:#e1eadf; border-color:#8fa389; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible {
+  outline:3px solid var(--gold); outline-offset:3px;
+}
+header {
+  border-bottom:1px solid var(--line); background:var(--paper);
+}
+.wrap { width:min(1200px,100%); margin:auto; padding:0 24px; }
+.top {
+  min-height:88px; display:flex; align-items:center;
+  justify-content:space-between; gap:16px;
+}
+.brand { font-family:serif; font-size:28px; letter-spacing:.1em; }
+.eyebrow {
+  font-size:11px; letter-spacing:.18em; color:var(--muted);
+}
+.hero { padding:54px 0 36px; max-width:820px; }
+h1 {
+  margin:12px 0 18px; font-family:serif;
+  font-size:clamp(34px,6vw,62px); line-height:1.25; font-weight:500;
+}
+h1 em { color:var(--gold); font-style:normal; }
+.hero p,.muted { color:var(--muted); }
+.filters {
+  display:grid; grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:14px; padding:22px; background:var(--paper);
+  border:1px solid var(--line); border-radius:12px;
+}
+label { display:block; font-size:14px; }
+input[type="search"],select {
+  display:block; width:100%; margin-top:6px; padding:11px;
+  border:1px solid var(--line); border-radius:7px;
+  background:white; color:var(--ink); min-width:0;
+}
+.tools {
+  display:flex; flex-wrap:wrap; align-items:center;
+  gap:10px; margin:20px 0;
+}
+#status { flex:1 1 260px; margin:0; font-size:14px; }
+#status.error { color:#a13c31; }
+.grid {
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:20px;
+}
+.card {
+  background:var(--paper); border:1px solid var(--line);
+  border-radius:12px; padding:18px; display:flex;
+  flex-direction:column; gap:10px; min-width:0;
+}
+.cover {
+  min-height:185px; padding:22px;
+  background:linear-gradient(145deg,#315548,#17392f);
+  color:#f8f2df; border-radius:5px 12px 12px 5px;
+  border-left:7px solid #b5894e;
+  display:flex; flex-direction:column; justify-content:space-between;
+}
+.cover.tian { background:linear-gradient(145deg,#35506c,#172d45); }
+.cover.putian { background:linear-gradient(145deg,#8a6448,#4e382c); }
+.cover small { font-size:10px; letter-spacing:.12em; opacity:.8; }
+.cover strong { font-family:serif; font-size:21px; line-height:1.5; }
+.card h2 { margin:0; font-size:17px; line-height:1.6; }
+.card p { margin:0; font-size:13px; overflow-wrap:anywhere; }
+.card .actions {
+  margin-top:auto; padding-top:8px;
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+.card .actions button { font-size:13px; padding:7px 10px; }
+.tag { font-size:11px; color:var(--muted); }
+.grid.list { grid-template-columns:1fr; }
+.grid.list .card {
+  display:grid; grid-template-columns:100px 1fr;
+  column-gap:20px; align-items:start;
+}
+.grid.list .cover {
+  grid-row:1 / span 6; min-height:145px; padding:10px;
+  border-left-width:4px;
+}
+.grid.list .cover strong { font-size:13px; }
+.empty {
+  grid-column:1 / -1; text-align:center; padding:50px 20px;
+  background:var(--paper); border:1px dashed var(--line);
+  border-radius:12px; color:var(--muted);
+}
+.pages {
+  display:flex; justify-content:center; align-items:center;
+  flex-wrap:wrap; gap:16px; padding:30px 0;
+}
+footer {
+  border-top:1px solid var(--line); padding:25px 0;
+  margin-top:20px; font-size:12px; color:var(--muted);
+}
+dialog {
+  width:min(720px,calc(100% - 28px)); max-height:88vh;
+  padding:28px; border:1px solid var(--line); border-radius:14px;
+  background:var(--paper); color:var(--ink); overflow:auto;
+}
+dialog::backdrop { background:rgba(15,30,24,.55); }
+.dialog-head {
+  display:flex; align-items:start; justify-content:space-between;
+  gap:15px; border-bottom:1px solid var(--line);
+  padding-bottom:15px; margin-bottom:20px;
+}
+.dialog-head h2 { margin:0; font-family:serif; }
+.dialog-head button { padding:5px 12px; }
+.details h3 { font-size:16px; margin:24px 0 8px; }
+.details .text { white-space:pre-wrap; overflow-wrap:anywhere; }
+.details .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+#listItems .saved-row {
+  border-bottom:1px solid var(--line); padding:15px 0;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+#listItems .saved-title {
+  border:0; background:none; padding:0; text-align:left;
+  justify-content:start;
+}
+#listItems small { display:block; color:var(--muted); }
+.hidden { display:none !important; }
+@media(max-width:950px) {
+  .grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .filters { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:680px) {
+  .wrap { padding:0 16px; }
+  .hero { padding-top:32px; }
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .card { padding:12px; }
+  .cover { min-height:165px; padding:14px; }
+  .cover strong { font-size:17px; }
+  .brand { font-size:23px; }
+  .eyebrow { font-size:9px; }
+}
+@media(max-width:400px) {
+  .filters { grid-template-columns:1fr; }
+  .grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap top">
+    <div>
+      <div class="brand">天道書樓</div>
+      <div class="eyebrow">TIEN DAO · EBOOK CATALOGUE</div>
+    </div>
+    <button id="openList">♡ 我的書單（0）</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">READ · REFLECT · RENEW</div>
+    <h1>讓閱讀，成為生命的<br><em>光。</em></h1>
+    <p>探索聖經研讀、神學、靈修、教牧與生活書籍。本頁以你的 books.csv 作為書目資料來源。</p>
+    <p class="muted">書名、貢獻者、作者簡介、語言代碼及連結依 CSV 顯示；售價與供應以商店為準。書封為示意設計。</p>
+  </section>
+
+  <section class="filters" aria-label="書目篩選">
+    <label>搜尋
+      <input id="search" type="search" placeholder="搜尋書名、副標題或貢獻者">
+    </label>
+    <label>書目系列
+      <select id="series">
+        <option value="">全部系列</option>
+        <option value="tian">天註系列</option>
+        <option value="putian">普天註釋系列</option>
+        <option value="other">其他書籍</option>
+      </select>
+    </label>
+    <label>原始語言欄
+      <select id="language">
+        <option value="*">全部語言</option>
+      </select>
+    </label>
+    <label>每頁顯示
+      <select id="pageSize">
+        <option value="24">24 本</option>
+        <option value="48">48 本</option>
+        <option value="96">96 本</option>
+        <option value="all">全部書籍</option>
+      </select>
+    </label>
+  </section>
+
+  <div class="tools">
+    <p id="status" role="status" aria-live="polite">正在準備載入 books.csv⋯⋯</p>
+    <button id="importBtn">匯入 books.csv</button>
+    <input id="fileInput" type="file" accept=".csv,text/csv" hidden="">
+    <button id="reload">重新載入</button>
+    <button id="reset">重設篩選</button>
+    <button id="viewToggle" aria-pressed="false">清單顯示</button>
+    <button id="export">匯出我的書單</button>
+  </div>
+
+  <section id="catalogue" class="grid" aria-label="電子書目錄"></section>
+
+  <nav class="pages" aria-label="書目分頁">
+    <button id="prev">上一頁</button>
+    <span id="pageInfo" aria-live="polite">第 0 / 0 頁</span>
+    <button id="next">下一頁</button>
+  </nav>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>本地電子書目預覽，非官方交易頁。購買連結直接取自 CSV；沒有連結的項目不會補猜網址。</p>
+    <p>「我的書單」僅保存在目前頁面的記憶體中，重新整理後會清除。可使用「匯出我的書單」保存文字檔。</p>
+    <p>作者簡介為原始提供資料，未核實現任職銜。語言欄的 ara 與空白值保持不變。</p>
+    <p>如自動載入失敗，請按「匯入 books.csv」。嵌入式預覽可能限制外部連結或下載。</p>
+  </div>
+</footer>
+
+<dialog id="detailDialog" aria-labelledby="detailTitle">
+  <div class="dialog-head">
+    <div>
+      <div class="eyebrow">書籍詳情</div>
+      <h2 id="detailTitle"></h2>
+    </div>
+    <button id="closeDetail" aria-label="關閉書籍詳情">×</button>
+  </div>
+  <div id="detailBody" class="details"></div>
+</dialog>
+
+<dialog id="listDialog" aria-labelledby="listTitle">
+  <div class="dialog-head">
+    <h2 id="listTitle">我的書單</h2>
+    <button id="closeList" aria-label="關閉我的書單">×</button>
+  </div>
+  <div id="listItems"></div>
+  <div class="tools">
+    <button id="listExport" class="primary">匯出我的書單</button>
+  </div>
+  <p class="muted">書單僅在目前頁面開啟期間保留。</p>
+</dialog>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+const columns = [
+  "title", "subtitle", "url", "contributors",
+  "description", "author_bio", "language"
+];
+const languageLabels = {
+  chi: "chi — 中文",
+  eng: "eng — 英文",
+  vie: "vie — 越南文",
+  ara: "ara — 原欄值待核對",
+  "": "未提供"
+};
+
+let books = [];
+let page = 1;
+let loaded = false;
+let localFile = null;
+let loading = false;
+let loadVersion = 0;
+const saved = new Map();
+
+function el(tag, text, className) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (className) node.className = className;
+  return node;
+}
+
+function action(text, callback, className) {
+  const button = el("button", text, className);
+  button.type = "button";
+  button.addEventListener("click", callback);
+  return button;
+}
+
+function setStatus(text, error = false) {
+  $("status").textContent = text;
+  $("status").classList.toggle("error", error);
+}
+
+/* Handles quoted fields, escaped quotes, commas and multiline fields. */
+function parseCSV(source) {
+  const text = source.replace(/^\uFEFF/, "");
+  const rows = [];
+  let row = [];
+  let field = "";
+  let quoted = false;
+  let quoteClosed = false;
+
+  function endField() {
+    row.push(field);
+    field = "";
+    quoteClosed = false;
+  }
+  function endRow() {
+    endField();
+    if (row.some(value => value !== "")) rows.push(row);
+    row = [];
+  }
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+
+    if (quoted) {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          quoted = false;
+          quoteClosed = true;
+        }
+      } else {
+        field += c;
+      }
+      continue;
+    }
+
+    if (c === ",") {
+      endField();
+    } else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      endRow();
+    } else if (quoteClosed) {
+      throw new Error("CSV 引號結束後出現多餘字元。");
+    } else if (c === '"') {
+      if (field !== "") throw new Error("CSV 欄位中的引號格式不正確。");
+      quoted = true;
+    } else {
+      field += c;
+    }
+  }
+
+  if (quoted) throw new Error("CSV 有未關閉的引號。");
+  endRow();
+
+  if (!rows.length) throw new Error("CSV 沒有資料。");
+
+  const header = rows.shift().map(value => value.trim());
+  const missing = columns.filter(name => !header.includes(name));
+  if (missing.length) {
+    throw new Error("缺少必要欄位：" + missing.join(", "));
+  }
+  if (new Set(header).size !== header.length) {
+    throw new Error("CSV 的欄位名稱重複。");
+  }
+
+  return rows.map((values, index) => {
+    if (values.length !== header.length) {
+      throw new Error("第 " + (index + 2) + " 筆紀錄的欄位數目不正確。");
+    }
+    const book = {};
+    columns.forEach(name => {
+      book[name] = values[header.indexOf(name)] ?? "";
+    });
+    book.key = JSON.stringify([book.url, book.title, book.subtitle]);
+    return book;
+  }).filter(book => book.title.trim() !== "");
+}
+
+function seriesOf(book) {
+  if (book.title.startsWith("天註")) return "tian";
+  if (/^普天[註注][釋释]/.test(book.title)) return "putian";
+  return "other";
+}
+
+function seriesLabel(book) {
+  return {
+    tian: "天註系列",
+    putian: "普天註釋系列",
+    other: "其他書籍"
+  }[seriesOf(book)];
+}
+
+/* Convert supplied markup to readable text without inserting it into the page. */
+function readableText(value) {
+  if (!value) return "";
+  const template = document.createElement("template");
+  template.innerHTML = value;
+  template.content.querySelectorAll(
+    "script,style,iframe,object,embed"
+  ).forEach(node => node.remove());
+  template.content.querySelectorAll("br").forEach(node => {
+    node.replaceWith(document.createTextNode("\n"));
+  });
+  template.content.querySelectorAll("p,div,li,h1,h2,h3").forEach(node => {
+    node.append(document.createTextNode("\n\n"));
+  });
+  return (template.content.textContent || "")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function validLink(raw) {
+  if (!raw) return false;
+  try {
+    const url = new URL(raw);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function filteredBooks() {
+  const query = $("search").value.trim().toLocaleLowerCase();
+  const series = $("series").value;
+  const language = $("language").value;
+  return books.filter(book => {
+    const searchable = [
+      book.title, book.subtitle, book.contributors
+    ].join(" ").toLocaleLowerCase();
+    return (!query || searchable.includes(query))
+      && (!series || seriesOf(book) === series)
+      && (language === "*" || book.language === language);
+  });
+}
+
+function rebuildLanguages() {
+  const previous = $("language").value;
+  const codes = [...new Set(books.map(book => book.language))];
+  $("language").replaceChildren(el("option", "全部語言"));
+  $("language").firstChild.value = "*";
+  codes.sort().forEach(code => {
+    const option = el("option", languageLabels[code] || code);
+    option.value = code;
+    $("language").append(option);
+  });
+  $("language").value = codes.includes(previous) ? previous : "*";
+}
+
+function toggleSaved(book) {
+  if (saved.has(book.key)) saved.delete(book.key);
+  else saved.set(book.key, book);
+  updateSavedUI();
+  render();
+}
+
+function updateSavedUI() {
+  $("openList").textContent = "♡ 我的書單（" + saved.size + "）";
+  $("export").disabled = saved.size === 0;
+  $("listExport").disabled = saved.size === 0;
+  if ($("listDialog").open) renderSaved();
+}
+
+function render() {
+  const filtered = filteredBooks();
+  const perPage = $("pageSize").value === "all"
+    ? Math.max(filtered.length, 1)
+    : Number($("pageSize").value);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  page = Math.min(Math.max(page, 1), totalPages);
+
+  const fragment = document.createDocumentFragment();
+  const visible = filtered.slice((page - 1) * perPage, page * perPage);
+
+  visible.forEach(book => {
+    const card = el("article", undefined, "card");
+    const cover = el("div", undefined, "cover " + seriesOf(book));
+    cover.setAttribute("aria-hidden", "true");
+    cover.append(
+      el("small", "天道書樓 · 示意書封"),
+      el("strong", book.title),
+      el("small", seriesLabel(book))
+    );
+    card.append(cover, el("h2", book.title));
+
+    if (book.subtitle) card.append(el("p", book.subtitle, "muted"));
+    card.append(el("p", book.contributors || "貢獻者未提供", "muted"));
+    card.append(el("span",
+      seriesLabel(book) + " · "
+      + (languageLabels[book.language] || book.language), "tag"));
+
+    const actions = el("div", undefined, "actions");
+    actions.append(
+      action("查看詳情", () => showDetails(book)),
+      action(saved.has(book.key) ? "♥ 已加入" : "♡ 加入書單",
+        () => toggleSaved(book),
+        saved.has(book.key) ? "active" : "")
+    );
+    card.append(actions);
+    fragment.append(card);
+  });
+
+  if (!visible.length) {
+    fragment.append(el("div",
+      loaded ? "沒有符合條件的書籍。" : "請匯入你的 books.csv 以顯示書目。",
+      "empty"));
+  }
+
+  $("catalogue").replaceChildren(fragment);
+  $("prev").disabled = !filtered.length || page <= 1;
+  $("next").disabled = !filtered.length || page >= totalPages;
+  $("pageInfo").textContent = filtered.length
+    ? "第 " + page + " / " + totalPages + " 頁"
+    : "第 0 / 0 頁";
+
+  if (loaded && !loading) {
+    setStatus("共 " + books.length + " 本書籍 · 符合篩選 "
+      + filtered.length + " 本");
+  }
+}
+
+function showDetails(book) {
+  if ($("listDialog").open) $("listDialog").close();
+
+  $("detailTitle").textContent = book.title;
+  const body = $("detailBody");
+  body.replaceChildren();
+
+  if (book.subtitle) body.append(el("p", book.subtitle, "muted"));
+  body.append(
+    el("p", book.contributors || "貢獻者未提供"),
+    el("p", "原始語言欄："
+      + (languageLabels[book.language] || book.language), "muted"),
+    el("h3", "內容簡介"),
+    el("div", readableText(book.description) || "此 CSV 未提供內容簡介。", "text"),
+    el("h3", "作者簡介"),
+    el("div", readableText(book.author_bio) || "此 CSV 未提供作者簡介。", "text")
+  );
+
+  const actions = el("div", undefined, "actions");
+  const saveButton = action(
+    saved.has(book.key) ? "從我的書單移除" : "加入我的書單",
+    () => {
+      toggleSaved(book);
+      saveButton.textContent = saved.has(book.key)
+        ? "從我的書單移除" : "加入我的書單";
+    }
+  );
+  actions.append(saveButton);
+
+  if (validLink(book.url)) {
+    const link = el("a", "前往 Google Play 查看書籍", "button primary");
+    link.setAttribute("href", book.url);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    actions.append(link);
+  } else {
+    actions.append(el("span",
+      book.url ? "原始網址格式不支援，未建立連結。" : "未提供商店連結。",
+      "muted"));
+  }
+
+  body.append(actions);
+  if (!$("detailDialog").open) $("detailDialog").showModal();
+}
+
+function renderSaved() {
+  const container = $("listItems");
+  container.replaceChildren();
+
+  if (!saved.size) {
+    container.append(el("p", "尚未加入書籍。", "muted"));
+    return;
+  }
+
+  saved.forEach(book => {
+    const row = el("div", undefined, "saved-row");
+    const info = el("div");
+    info.append(
+      action(book.title, () => showDetails(book), "saved-title"),
+      el("small", book.contributors || "貢獻者未提供")
+    );
+    row.append(info, action("移除", () => toggleSaved(book)));
+    container.append(row);
+  });
+}
+
+function exportSaved() {
+  if (!saved.size) return;
+  const text = ["天道書樓｜我的書單", ""];
+  saved.forEach(book => {
+    text.push(book.title);
+    if (book.subtitle) text.push(book.subtitle);
+    if (book.contributors) text.push(book.contributors);
+    if (book.url) text.push(book.url);
+    text.push("");
+  });
+  const blob = new Blob(["\uFEFF" + text.join("\n")], {
+    type: "text/plain;charset=utf-8"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "我的書單.txt";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+async function loadBooks(file = null) {
+  const version = ++loadVersion;
+  loading = true;
+  $("reload").disabled = true;
+  setStatus("正在載入書籍⋯⋯");
+
+  try {
+    let text;
+    if (file) {
+      text = await file.text();
+    } else {
+      if (!/^https?:$/.test(location.protocol)) {
+        throw new Error("請按「匯入 books.csv」，選取你的 CSV 檔案。");
+      }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      try {
+        const response = await fetch("./books.csv", {
+          cache: "no-store",
+          signal: controller.signal
+        });
+        if (!response.ok) throw new Error("無法讀取 books.csv。");
+        text = await response.text();
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    const parsed = parseCSV(text);
+    if (version !== loadVersion) return;
+
+    books = parsed;
+    localFile = file;
+    loaded = true;
+    loading = false;
+    page = 1;
+
+    const current = new Map(books.map(book => [book.key, book]));
+    saved.forEach((book, key) => {
+      if (current.has(key)) saved.set(key, current.get(key));
+    });
+
+    rebuildLanguages();
+    updateSavedUI();
+    render();
+  } catch (error) {
+    if (version !== loadVersion) return;
+    loading = false;
+    render();
+    setStatus(
+      (error.name === "AbortError" ? "自動載入逾時。" : error.message)
+      + " 如未能自動載入，請使用「匯入 books.csv」。",
+      true
+    );
+  } finally {
+    if (version === loadVersion) $("reload").disabled = false;
+  }
+}
+
+["search", "series", "language", "pageSize"].forEach(id => {
+  $(id).addEventListener(id === "search" ? "input" : "change", () => {
+    page = 1;
+    render();
+  });
+});
+
+$("prev").addEventListener("click", () => { page--; render(); });
+$("next").addEventListener("click", () => { page++; render(); });
+
+$("reset").addEventListener("click", () => {
+  $("search").value = "";
+  $("series").value = "";
+  $("language").value = "*";
+  $("pageSize").value = "24";
+  page = 1;
+  render();
+});
+
+$("viewToggle").addEventListener("click", () => {
+  const listMode = $("catalogue").classList.toggle("list");
+  $("viewToggle").textContent = listMode ? "書封顯示" : "清單顯示";
+  $("viewToggle").setAttribute("aria-pressed", String(listMode));
+});
+
+$("importBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", event => {
+  const file = event.target.files[0];
+  if (file) loadBooks(file);
+  event.target.value = "";
+});
+$("reload").addEventListener("click", () => loadBooks(localFile));
+
+$("openList").addEventListener("click", () => {
+  renderSaved();
+  $("listDialog").showModal();
+});
+$("closeList").addEventListener("click", () => $("listDialog").close());
+$("closeDetail").addEventListener("click", () => $("detailDialog").close());
+$("export").addEventListener("click", exportSaved);
+$("listExport").addEventListener("click", exportSaved);
+
+updateSavedUI();
+render();
+loadBooks();
+</script>
+
+
+</body></html>
